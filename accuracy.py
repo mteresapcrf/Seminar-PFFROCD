@@ -17,7 +17,7 @@ def time_function(func, *args, **kwargs):
     execution_time = end_time - start_time
     return result, execution_time
 
-def compare_accuracies_euc(pairs, m=10, quant_funcs=None):
+def compare_accuracies_euc(pairs, m=1000, quant_funcs=None):
     if quant_funcs is None:
         quant_funcs = quantization_functions
 
@@ -31,41 +31,36 @@ def compare_accuracies_euc(pairs, m=10, quant_funcs=None):
     sf_threshold = 10.734  
 
     for i in range(m):
-        a, b, imga, imgb, n = pairs[i]
+        imga, imgb, n = pairs[i]
+
+        a_f = bs.get_embedding_facenet(imga)
+        b_f = bs.get_embedding_facenet(imgb)
 
         # Facenet calculations
-        a_q_tensor, tensor_time_a = time_function(qt.quantize_tensor, a)
-        b_q_tensor, tensor_time_b = time_function(qt.quantize_tensor, b)
-        a_qn_t = a_q_tensor / np.linalg.norm(a_q_tensor)
-        b_qn_t = b_q_tensor / np.linalg.norm(b_q_tensor)
+        a_tensor_facenet, tensor_time_a = time_function(qt.quantize_tensor, a_f)
+        b_qtensor_facenet, tensor_time_b = time_function(qt.quantize_tensor, b_f)
 
-        a_n = a / np.linalg.norm(a)
-        b_n = b / np.linalg.norm(b)
+        a_n = a_f / np.linalg.norm(a_f)
+        b_n = b_f / np.linalg.norm(b_f)
 
         # SFace calculations
         a_s = bs.get_embedding(imga)
         b_s = bs.get_embedding(imgb)
 
-        a_q_tensor_s, tensor_time_s_a = time_function(qt.quantize_tensor, a_s)
-        b_q_tensor_s, tensor_time_s_b = time_function(qt.quantize_tensor, b_s)
-        a_qn_t_s = a_q_tensor_s / np.linalg.norm(a_q_tensor_s)
-        b_qn_t_s = b_q_tensor_s / np.linalg.norm(b_q_tensor_s)
+        a_tensor_sface, tensor_time_s_a = time_function(qt.quantize_tensor, a_s)
+        b_tensor_sface, tensor_time_s_b = time_function(qt.quantize_tensor, b_s)
 
         a_n_s = a_s / np.linalg.norm(a_s)
         b_n_s = b_s / np.linalg.norm(b_s)
-
+       
         for name, quant_func in quant_funcs.items():
             # Scalar quantization for Facenet
-            a_quant, scalar_time_a = time_function(quant_func, a)
-            b_quant, scalar_time_b = time_function(quant_func, b)
-            a_qn_s = a_quant / np.linalg.norm(a_quant)
-            b_qn_s = b_quant / np.linalg.norm(b_quant)
+            a_quant_facenet, scalar_time_a = time_function(quant_func, a_f)
+            b_quant_facenet, scalar_time_b = time_function(quant_func, b_f)
 
             # Scalar quantization for SFace
-            a_quant_s, scalar_time_s_a = time_function(quant_func, a_s)
-            b_quant_s, scalar_time_s_b = time_function(quant_func, b_s)
-            a_qn_s_s = a_quant_s / np.linalg.norm(a_quant_s)
-            b_qn_s_s = b_quant_s / np.linalg.norm(b_quant_s)
+            a_quant_sface, scalar_time_s_a = time_function(quant_func, a_s)
+            b_quant_sface, scalar_time_s_b = time_function(quant_func, b_s)
 
             # Accumulate timing
             time_counters[name]['tensor_time'] += tensor_time_a + tensor_time_b + tensor_time_s_a + tensor_time_s_b
@@ -74,11 +69,11 @@ def compare_accuracies_euc(pairs, m=10, quant_funcs=None):
 
             # Facenet comparison
             if n:
-                if bs.euclidean_distance(a_qn_t, b_qn_t) > fn_threshold:
+                if bs.euclidean_distance(a_tensor_facenet, b_qtensor_facenet) > fn_threshold:
                     counters[name]['wrong_tensor_facenet'] += 1
                 else:
                     counters[name]['correct_tensor_facenet'] += 1
-                if bs.euclidean_distance(a_qn_s, b_qn_s) > fn_threshold:
+                if bs.euclidean_distance(a_quant_facenet, b_quant_facenet) > fn_threshold:
                     counters[name]['wrong_scalar_facenet'] += 1
                 else:
                     counters[name]['correct_scalar_facenet'] += 1
@@ -88,11 +83,11 @@ def compare_accuracies_euc(pairs, m=10, quant_funcs=None):
                     counters[name]['correct_noquant_facenet'] += 1
 
             # SFace comparison
-            if bs.euclidean_distance(a_qn_t_s, b_qn_t_s) > sf_threshold:
+            if bs.euclidean_distance(a_tensor_sface, b_tensor_sface) > sf_threshold:
                 counters[name]['wrong_tensor_sface'] += 1
             else:
                 counters[name]['correct_tensor_sface'] += 1
-            if bs.euclidean_distance(a_qn_s_s, b_qn_s_s) > sf_threshold:
+            if bs.euclidean_distance(a_quant_sface, b_quant_sface) > sf_threshold:
                 counters[name]['wrong_scalar_sface'] += 1
             else:
                 counters[name]['correct_scalar_sface'] += 1
@@ -103,7 +98,7 @@ def compare_accuracies_euc(pairs, m=10, quant_funcs=None):
 
     return counters, time_counters
 
-def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
+def compare_accuracies_cos(pairs, m=100, quant_funcs=None):
     if quant_funcs is None:
         quant_funcs = quantization_functions
 
@@ -117,41 +112,38 @@ def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
     sf_threshold_cos = 0.593
 
     for i in range(m):
-        a, b, imga, imgb, n = pairs[i]
-        
-        # Facenet calculations
-        a_q_tensor, tensor_time_a = time_function(qt.quantize_tensor, a)
-        b_q_tensor, tensor_time_b = time_function(qt.quantize_tensor, b)
-        a_qn_t = a_q_tensor / np.linalg.norm(a_q_tensor)
-        b_qn_t = b_q_tensor / np.linalg.norm(b_q_tensor)
+        imga, imgb, n = pairs[i]
 
-        a_n = a / np.linalg.norm(a)
-        b_n = b / np.linalg.norm(b)
+        a_f = bs.get_embedding_facenet(imga)
+        b_f = bs.get_embedding_facenet(imgb)
+        # Facenet calculations
+        a_qtensor_facenet, tensor_time_a = time_function(qt.quantize_tensor, a_f)
+        b_qtensor_facenet, tensor_time_b = time_function(qt.quantize_tensor, b_f)
+
+        a_n = a_f / np.linalg.norm(a_f)
+        b_n = b_f / np.linalg.norm(b_f)
 
         # SFace calculations
         a_s = bs.get_embedding(imga)
         b_s = bs.get_embedding(imgb)
 
-        a_q_tensor_s, tensor_time_s_a = time_function(qt.quantize_tensor, a_s)
-        b_q_tensor_s, tensor_time_s_b = time_function(qt.quantize_tensor, b_s)
-        a_qn_t_s = a_q_tensor_s / np.linalg.norm(a_q_tensor_s)
-        b_qn_t_s = b_q_tensor_s / np.linalg.norm(b_q_tensor_s)
+        a_tensor_sface, tensor_time_s_a = time_function(qt.quantize_tensor, a_s)
+        b_tensor_sface, tensor_time_s_b = time_function(qt.quantize_tensor, b_s)
+
 
         a_n_s = a_s / np.linalg.norm(a_s)
         b_n_s = b_s / np.linalg.norm(b_s)
 
         for name, quant_func in quant_funcs.items():
             # Scalar quantization for Facenet
-            a_quant, scalar_time_a = time_function(quant_func, a)
-            b_quant, scalar_time_b = time_function(quant_func, b)
-            a_qn_s = a_quant / np.linalg.norm(a_quant)
-            b_qn_s = b_quant / np.linalg.norm(b_quant)
+            a_quant_facenet, scalar_time_a = time_function(quant_func, a_f)
+            b_quant_facenet, scalar_time_b = time_function(quant_func, b_f)
+        
 
             # Scalar quantization for SFace
-            a_quant_s, scalar_time_s_a = time_function(quant_func, a_s)
-            b_quant_s, scalar_time_s_b = time_function(quant_func, b_s)
-            a_qn_s_s = a_quant_s / np.linalg.norm(a_quant_s)
-            b_qn_s_s = b_quant_s / np.linalg.norm(b_quant_s)
+            a_quant_sface, scalar_time_s_a = time_function(quant_func, a_s)
+            b_quant_sface, scalar_time_s_b = time_function(quant_func, b_s)
+            
 
             # Accumulate timing
             time_counters[name]['tensor_time'] += tensor_time_a + tensor_time_b + tensor_time_s_a + tensor_time_s_b
@@ -160,11 +152,11 @@ def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
 
             # Facenet comparison
             if n:
-                if bs.get_cos_dist_numpy(a_qn_t, b_qn_t) > fn_threshold_cos:
+                if bs.get_cos_dist_numpy(a_qtensor_facenet, b_qtensor_facenet) > fn_threshold_cos:
                     counters[name]['wrong_tensor_facenet'] += 1
                 else:
                     counters[name]['correct_tensor_facenet'] += 1
-                if bs.get_cos_dist_numpy(a_qn_s, b_qn_s) > fn_threshold_cos:
+                if bs.get_cos_dist_numpy(a_quant_facenet, b_quant_facenet) > fn_threshold_cos:
                     counters[name]['wrong_scalar_facenet'] += 1
                 else:
                     counters[name]['correct_scalar_facenet'] += 1
@@ -173,11 +165,11 @@ def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
                 else:
                     counters[name]['correct_noquant_facenet'] += 1
             else:
-                if bs.get_cos_dist_numpy(a_qn_t, b_qn_t) > fn_threshold_cos:
+                if bs.get_cos_dist_numpy(a_qtensor_facenet, b_qtensor_facenet) > fn_threshold_cos:
                     counters[name]['correct_tensor_facenet'] += 1
                 else:
                     counters[name]['wrong_tensor_facenet'] += 1
-                if bs.get_cos_dist_numpy(a_qn_s, b_qn_s) > fn_threshold_cos:
+                if bs.get_cos_dist_numpy(a_quant_facenet, b_quant_facenet) > fn_threshold_cos:
                     counters[name]['correct_scalar_facenet'] += 1
                 else:
                     counters[name]['wrong_scalar_facenet'] += 1
@@ -188,11 +180,11 @@ def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
 
             # SFace comparison
             if n:
-                if bs.get_cos_dist_numpy(a_qn_t_s, b_qn_t_s) > sf_threshold_cos:
+                if bs.get_cos_dist_numpy(a_tensor_sface, b_tensor_sface) > sf_threshold_cos:
                     counters[name]['wrong_tensor_sface'] += 1
                 else:
                     counters[name]['correct_tensor_sface'] += 1
-                if bs.get_cos_dist_numpy(a_qn_s_s, b_qn_s_s) > sf_threshold_cos:
+                if bs.get_cos_dist_numpy(a_quant_sface, b_quant_sface) > sf_threshold_cos:
                     counters[name]['wrong_scalar_sface'] += 1
                 else:
                     counters[name]['correct_scalar_sface'] += 1
@@ -201,11 +193,11 @@ def compare_accuracies_cos(pairs, m=10, quant_funcs=None):
                 else:
                     counters[name]['correct_noquant_sface'] += 1
             else:
-                if bs.get_cos_dist_numpy(a_qn_t_s, b_qn_t_s) > sf_threshold_cos:
+                if bs.get_cos_dist_numpy(a_tensor_sface, b_tensor_sface) > sf_threshold_cos:
                     counters[name]['correct_tensor_sface'] += 1
                 else:
                     counters[name]['wrong_tensor_sface'] += 1
-                if bs.get_cos_dist_numpy(a_qn_s_s, b_qn_s_s) > sf_threshold_cos:
+                if bs.get_cos_dist_numpy(a_quant_sface, b_quant_sface) > sf_threshold_cos:
                     counters[name]['correct_scalar_sface'] += 1
                 else:
                     counters[name]['wrong_scalar_sface'] += 1
