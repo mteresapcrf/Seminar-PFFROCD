@@ -1,6 +1,8 @@
 lfw/
 
-myenv/
+env/
+
+newenv/
 
 __pycache__/
 
