@@ -1,5 +1,7 @@
 import numpy as np
 import tensorflow as tf
+import time
+import statistics
 import basics as bs
 import accuracy as ac
 
