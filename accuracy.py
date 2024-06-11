@@ -191,3 +191,4 @@ def compare_accuracies_cos(pairs, m=1000, quant_funcs=None):
                     counters[name]['wrong_noquant_sface'] += 1
 
     return counters
+    
