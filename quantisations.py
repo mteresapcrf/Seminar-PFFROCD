@@ -5,7 +5,7 @@ import statistics
 import basics as bs
 import accuracy as ac
 
-def calibrate_percentile(embedding, calibration_percentage=99):
+def calibrate_percentile(embedding, calibration_percentage=100):
     """
     Calibrate the range of values in the embedding based on a specified percentile.
     """

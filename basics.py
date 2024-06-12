@@ -36,8 +36,11 @@ def run_sfe(x, y, y_0, y_1):
 def get_embedding(imagepath):
     return DeepFace.represent(img_path = imagepath, model_name="SFace", enforce_detection=True)[0]["embedding"]
 
+def get_embedding_facenet(imagepath):
+    return DeepFace.represent(img_path = imagepath, model_name="Facenet", enforce_detection=True)[0]["embedding"]
+
 def get_cos_dist_numpy(x, y):
-    return 1 - np.dot(x, y)
+    return 1 - np.dot(x, y)/(np.linalg.norm(x)*np.linalg.norm(y))
     
 def get_cos_dist_nom(x, y):
     return 1 - np.dot(x, y)
@@ -45,7 +48,7 @@ def get_cos_dist_nom(x, y):
 def get_two_random_embeddings(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
     embedding1, embedding2 = None, None # face embeddings
     while embedding1 is None or embedding2 is None: # try until the chosen images have detectable faces
         try:
@@ -67,7 +70,7 @@ def get_two_random_embeddings(same_person):
             # failed to detect faces in images, try again
             # print(e)
             pass
-    return np.array(embedding1), np.array(embedding2), img1,img2
+    return img1,img2
 
 def write_two_random_vecs(as_int=False):
     x, y = get_two_random_embeddings(False)
@@ -81,7 +84,7 @@ def write_two_random_vecs(as_int=False):
 def get_two_random_images(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
     img1, img2 = None, None # face embeddings
     while img1 is None or img2 is None: # try until the chosen images have detectable faces
         try:
@@ -91,8 +94,8 @@ def get_two_random_images(same_person):
                 person2 = person1
             else:
                 # two persons chosen should be different
-                person1 = random.choice(people)
-                person2 = random.choice([p for p in people if p != person1])
+                person1 = random.choice(people_with_multiple_images)
+                person2 = random.choice([p for p in people_with_multiple_images if p != person1])
             # get two random images
             img1 = f"lfw/{person1}/{random.choice(os.listdir(f'lfw/{person1}'))}"
             img2 = f"lfw/{person2}/{random.choice(os.listdir(f'lfw/{person2}'))}"
@@ -115,7 +118,7 @@ def euclidean_distance(x, y):
 def get_two_random_embeddings_facenet(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
     img1, img2 = None, None # face embeddings
     embedding1, embedding2 = None, None # face embeddings
     while embedding1 is None or embedding2 is None: # try until the chosen images have detectable faces
@@ -126,8 +129,8 @@ def get_two_random_embeddings_facenet(same_person):
                 person2 = person1
             else:
                 # two persons chosen should be different
-                person1 = random.choice(people)
-                person2 = random.choice([p for p in people if p != person1])
+                person1 = random.choice(people_with_multiple_images)
+                person2 = random.choice([p for p in people_with_multiple_images if p != person1])
             # get two random images
             img1 = f"lfw/{person1}/{random.choice(os.listdir(f'lfw/{person1}'))}"
             img2 = f"lfw/{person2}/{random.choice(os.listdir(f'lfw/{person2}'))}"
@@ -138,7 +141,4 @@ def get_two_random_embeddings_facenet(same_person):
             # failed to detect faces in images, try again
             # print(e)
             pass
-    return np.array(embedding1), np.array(embedding2), img1,img2
-
-def get_embedding_facenet(imagepath):
-    return DeepFace.represent(img_path = imagepath, model_name="Facenet", enforce_detection=True)[0]["embedding"]
+    return img1,img2
