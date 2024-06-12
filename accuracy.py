@@ -191,13 +191,13 @@ def compare_accuracies_cos(pairs, m=1000, quant_funcs=None):
         # for name, quant_func in quant_funcs.items():
         
         # Scalar quantization for Facenet
-        a_quant_facenet, scalar_time_a = time_function(quant_func, a_n)
-        b_quant_facenet, scalar_time_b = time_function(quant_func, b_n)
+        a_quant_facenet, scalar_time_a = time_function(quant_funcs, a_n)
+        b_quant_facenet, scalar_time_b = time_function(quant_funcs, b_n)
     
 
         # Scalar quantization for SFace
-        a_quant_sface, scalar_time_s_a = time_function(quant_func, a_n_s)
-        b_quant_sface, scalar_time_s_b = time_function(quant_func, b_n_s)
+        a_quant_sface, scalar_time_s_a = time_function(quant_funcs, a_n_s)
+        b_quant_sface, scalar_time_s_b = time_function(quant_funcs, b_n_s)
         
 
         # Accumulate timing
