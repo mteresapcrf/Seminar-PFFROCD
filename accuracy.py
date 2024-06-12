@@ -145,17 +145,18 @@ def compare_accuracies_cos(pairs, m=1000, quant_funcs=None):
     name = 'scalar_quantisation_percentile'
 
     # Initialize counters
-    counters = {name: {'correct_tensor_facenet': 0, 'wrong_tensor_facenet': 0, 'correct_scalar_facenet': 0, 'wrong_scalar_facenet': 0, 'correct_noquant_facenet': 0, 'wrong_noquant_facenet': 0, 'correct_tensor_sface': 0, 'wrong_tensor_sface': 0, 'correct_scalar_sface': 0, 'wrong_scalar_sface': 0, 'correct_noquant_sface': 0, 'wrong_noquant_sface': 0} for name in quant_funcs.keys()}
+    counters = {name: {'correct_tensor_facenet': 0, 'wrong_tensor_facenet': 0, 'correct_scalar_facenet': 0, 'wrong_scalar_facenet': 0, 'correct_noquant_facenet': 0, 'wrong_noquant_facenet': 0, 'correct_tensor_sface': 0, 'wrong_tensor_sface': 0, 'correct_scalar_sface': 0, 'wrong_scalar_sface': 0, 'correct_noquant_sface': 0, 'wrong_noquant_sface': 0}}
     
     # Initialize time counters
-    time_counters = {name: {'tensor_time': 0, 'scalar_time': 0, 'noquant_time': 0} for name in quant_funcs.keys()}
+    time_counters = {name: {'tensor_time': 0, 'scalar_time': 0, 'noquant_time': 0}}
 
     fn_threshold_cos = 0.4
     sf_threshold_cos = 0.593
     p=0
-    for i in range(m):
+    for _ in range(m):
         # imga, imgb, n = pairs[i]
-
+        a_f = None
+        b_f = None
 
         while a_f == None and b_f == None:
             try:
