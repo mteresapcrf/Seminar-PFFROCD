@@ -48,7 +48,7 @@ def get_cos_dist_nom(x, y):
 def get_two_random_embeddings(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
     embedding1, embedding2 = None, None # face embeddings
     while embedding1 is None or embedding2 is None: # try until the chosen images have detectable faces
         try:
@@ -84,7 +84,7 @@ def write_two_random_vecs(as_int=False):
 def get_two_random_images(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
     img1, img2 = None, None # face embeddings
     while img1 is None or img2 is None: # try until the chosen images have detectable faces
         try:
@@ -118,7 +118,7 @@ def euclidean_distance(x, y):
 def get_two_random_embeddings_facenet(same_person):
     """Get two random embeddings of either the same person or two different people out of all the images available"""
     people = [p for p in os.listdir('lfw') if os.path.isdir(os.path.join('lfw', p))] # list of all people that have images
-    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 3]  # list of people with more than one image in folder
+    people_with_multiple_images = [p for p in people if len([img for img in os.listdir(os.path.join("lfw", p)) if img != '.DS_Store']) > 1]  # list of people with more than one image in folder
     img1, img2 = None, None # face embeddings
     embedding1, embedding2 = None, None # face embeddings
     while embedding1 is None or embedding2 is None: # try until the chosen images have detectable faces
