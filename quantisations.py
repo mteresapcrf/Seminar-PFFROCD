@@ -60,7 +60,7 @@ def scalar_quantisation_max(values, lower_bound=None, upper_bound=None):
     zero_point = qmin - round(lower_bound / scale)
     
     # Quantize the values
-    quantized_values = np.clip(np.round(values / scale + zero_point), qmin, qmax).astype(np.int8)
+    quantized_values = np.clip(np.round(values / scale + zero_point), qmin, qmax).astype(np.int32)
     
     return quantized_values
 
@@ -139,7 +139,7 @@ def scalar_quantisation_tensorrt(values, histogram=None, num_bins=2048):
     
     return quantized_values
 
-def quantize_tensor(input_tensor, T=tf.qint32, mode='MIN_COMBINED', round_mode='HALF_AWAY_FROM_ZERO', name=None, narrow_range=False, axis=None, ensure_minimum_range=0.01):
+def quantize_tensor(input_tensor, T=tf.qint8, mode='MIN_COMBINED', round_mode='HALF_AWAY_FROM_ZERO', name=None, narrow_range=False, axis=None, ensure_minimum_range=0.01):
     quantized_tensor, _, _ = tf.quantization.quantize(
         input=input_tensor,
         min_range= np.min(input_tensor),
@@ -152,4 +152,4 @@ def quantize_tensor(input_tensor, T=tf.qint32, mode='MIN_COMBINED', round_mode='
         axis=axis,
         ensure_minimum_range=ensure_minimum_range
     )
-    return quantized_tensor.numpy()
+    return (quantized_tensor.numpy()).astype(np.int32)
