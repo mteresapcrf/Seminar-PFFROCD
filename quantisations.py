@@ -152,4 +152,4 @@ def quantize_tensor(input_tensor, T=tf.qint32, mode='MIN_COMBINED', round_mode='
         axis=axis,
         ensure_minimum_range=ensure_minimum_range
     )
-    return quantized_tensor.numpy()
+    return (quantized_tensor.numpy()).astype(int32)

@@ -7,8 +7,15 @@ import time
 quantization_functions = {
     "scalar_quantisation_max": qt.scalar_quantisation_max,
     "scalar_quantisation_percentile": qt.scalar_quantisation_percentile
-    # "scalar_quantisation_tensorrt": qt.scalar_quantisation_tensorrt
 }
+
+def gather_timings(func, repetitions=100):
+    times = []
+    for _ in range(repetitions):
+        _, exec_time = time_function(func, ...)
+        times.append(exec_time)
+    return times
+
 
 def time_function(func, *args, **kwargs):
     start_time = time.time()
@@ -52,9 +59,6 @@ def compare_accuracies_euc(pairs, m=1000, quant_funcs=None):
         a_tensor_facenet, tensor_time_a = time_function(qt.quantize_tensor, a_f)
         b_qtensor_facenet, tensor_time_b = time_function(qt.quantize_tensor, b_f)
 
-        # a_n = a_f / np.linalg.norm(a_f)
-        # b_n = b_f / np.linalg.norm(b_f)
-
         # SFace calculations
         a_s = bs.get_embedding(imga)
         b_s = bs.get_embedding(imgb)
@@ -64,8 +68,6 @@ def compare_accuracies_euc(pairs, m=1000, quant_funcs=None):
         a_tensor_sface, tensor_time_s_a = time_function(qt.quantize_tensor, a_s)
         b_tensor_sface, tensor_time_s_b = time_function(qt.quantize_tensor, b_s)
 
-        # a_n_s = a_s / np.linalg.norm(a_s)
-        # b_n_s = b_s / np.linalg.norm(b_s)
 
         for name, quant_func in quant_funcs.items():
        
@@ -81,10 +83,6 @@ def compare_accuracies_euc(pairs, m=1000, quant_funcs=None):
             time_counters[name]['tensor_time'] += tensor_time_a + tensor_time_b + tensor_time_s_a + tensor_time_s_b
             time_counters[name]['scalar_time'] += scalar_time_a + scalar_time_b + scalar_time_s_a + scalar_time_s_b
             time_counters[name]['noquant_time'] += 0  # No additional time for no quantization
-
-            # print(bs.euclidean_distance(a_tensor_facenet, b_qtensor_facenet))
-            # print(bs.euclidean_distance(a_quant_facenet, b_quant_facenet))
-            # print(bs.euclidean_distance(a_f, b_f))
 
             # Facenet comparison
             if n:
@@ -210,12 +208,6 @@ def compare_accuracies_cos(pairs, m=1000, quant_funcs=None):
             time_counters[name]['tensor_time'] += tensor_time_a + tensor_time_b + tensor_time_s_a + tensor_time_s_b
             time_counters[name]['scalar_time'] += scalar_time_a + scalar_time_b + scalar_time_s_a + scalar_time_s_b
             time_counters[name]['noquant_time'] += 0  # No additional time for no quantization
-
-            # print(bs.get_cos_dist_numpy(a_qtensor_facenet, b_qtensor_facenet))
-
-            # print(bs.get_cos_dist_numpy(a_quant_facenet, b_quant_facenet))
-
-            # print(bs.get_cos_dist_numpy(a_n, b_n))
 
             # Facenet comparison
             if n:
